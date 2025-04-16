@@ -1,0 +1,133 @@
+* { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #121212;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    #left-panel {
+      flex: 1;
+      min-width: 200px;
+      max-width: 60%;
+      background-color: #1f1f1f;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    #resizer {
+      width: 5px;
+      background-color: #555;
+      cursor: ew-resize;
+      z-index: 10;
+    }
+
+    #right-panel {
+      flex: 1.2;
+      min-width: 300px;
+      max-width: 40%;
+      background-color: #1a1a1a;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    h1 {
+      color: #E9E9EA;
+      font-size: 26px;
+      margin-bottom: 15px;
+    }
+
+    .problem-title h2 {
+      color: whitesmoke;
+      margin-bottom: 10px;
+    }
+
+    .problem-description {
+      font-size: 17px;
+      margin-bottom: 15px;
+    }
+
+    .test-cases, .constraints {
+      margin-top: 20px;
+    }
+
+    .test-case {
+      background-color: #2a2a2a;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+
+    .constraints ul { margin-left: 20px; }
+
+    .language-selector {
+      margin-top: 10px;
+      width: 150px;
+      background-color: #333;
+      border: 1px solid #555;
+      border-radius: 5px;
+      color: #E9E9EA;
+      padding: 8px;
+      font-size: 15px;
+    }
+
+    .btn-container {
+      margin-top: 10px;
+    }
+
+    .run-btn, .submit-btn {
+      background-color: #66b3ff;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 5px;
+      margin-right: 10px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .run-btn:hover, .submit-btn:hover {
+      background-color: #4d99e6;
+    }
+
+    #editor {
+      flex: 1;
+      border-radius: 5px;
+      margin-top: 10px;
+      height: 400px;
+    }
+
+    /* Output Box Styling */
+    .output-box {
+      margin-top: 20px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 14px;
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      border-left: 6px solid transparent;
+      white-space: pre-wrap;
+    }
+
+    .output-box.pass {
+      border-left-color: #4caf50;
+      background-color: #1b2b1b;
+      color: #b6f2c7;
+    }
+
+    .output-box.fail {
+      border-left-color: #f44336;
+      background-color: #2b1b1b;
+      color: #ff9999;
+    }

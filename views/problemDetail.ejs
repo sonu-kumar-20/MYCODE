@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Code Editor</title>
+  
+  <!-- Link to your CSS file -->
+  <link rel="stylesheet" href="/styles/styles.css">
+  
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  
+  <!-- Monaco Editor -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs/loader.js"></script>
+
+</head>
+<body>
+  <div class="container">
+    <!-- Left Panel -->
+    <div class="details" id="left-panel">
+      <h1><%= problem.title %></h1>
+
+      <div class="problem-title">
+        <h2>Problem Description</h2>
+        <p><%= problem.description %></p>
+      </div>
+
+      <div class="problem-difficulty">
+        <p><strong>Difficulty:</strong> <%= problem.difficulty %></p>
+      </div>
+
+      <div class="problem-category">
+        <p><strong>Category:</strong> <%= problem.category %></p>
+      </div>
+
+      <div class="test-cases">
+        <h3>Test Cases:</h3>
+        <% problem.testCases.forEach(testCase => { %>
+          <div class="test-case">
+            <p><strong>Input:</strong> <%= testCase.input %></p>
+            <p><strong>Expected Output:</strong> <%= testCase.expectedOutput %></p>
+          </div>
+        <% }) %>
+      </div>
+
+      <div class="constraints">
+        <h3>Constraints:</h3>
+        <ul>
+          <% problem.constraints.forEach(constraint => { %>
+            <li><%= constraint %></li>
+          <% }) %>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Resizer -->
+    <div id="resizer"></div>
+
+    <!-- Right Panel -->
+    <div class="editor-container" id="right-panel">
+      <div class="editor-wrapper">
+        <form action="/submit-solution/<%= problem._id %>" method="POST">
+          <label for="language-selector"><strong>Choose Language:</strong></label><br />
+          <select name="language" class="language-selector" id="language-selector">
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
+          </select>
+
+          <div class="btn-container">
+            <button type="button" class="run-btn" onclick="runCode()">Run Code</button>
+            <button type="submit" class="submit-btn">Submit Code</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="editor"></div>
+      <div id="run-output" class="output-box"></div>
+    </div>
+  </div>
+ <script>
+  <!-- Include the problemDetail.js script -->
+  const templates = <%- JSON.stringify(problem.templates) %>;  // This should pass the templates from your backend
+
+  require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs' } });
+  
+  require(['vs/editor/editor.main'], function () {
+    const languageSelector = document.getElementById('language-selector');
+    let selectedLang = languageSelector.value || 'javascript';
+  
+    const editor = monaco.editor.create(document.getElementById('editor'), {
+      value: templates[selectedLang],  // Initial template based on language
+      language: selectedLang,
+      theme: 'vs-dark',
+      automaticLayout: true
+    });
+  
+    languageSelector.addEventListener('change', function () {
+      selectedLang = languageSelector.value;
+      monaco.editor.setModelLanguage(editor.getModel(), selectedLang);
+      editor.setValue(templates[selectedLang]);
+    });
+  
+    window.runCode = function () {
+      const code = editor.getValue();
+      const language = languageSelector.value;
+      const input = "<%= problem.testCases && problem.testCases[0] ? problem.testCases[0].input : '' %>";  // Ensure there's at least one test case
+      const expected = "<%= problem.testCases && problem.testCases[0] ? problem.testCases[0].expectedOutput : '' %>".trim();
+      const outputDiv = document.getElementById("run-output");
+  
+      const functionSignature = "<%= problem.functionSignature || '' %>";
+      const functionNameMatch = functionSignature.match(/\b(\w+)\s*\(/);
+      const functionName = functionNameMatch ? functionNameMatch[1] : "";
+  
+      // Check if inputs are valid before making the request
+      if (!input || !expected) {
+        outputDiv.className = "output-box fail";
+        outputDiv.innerHTML = "<span style='color: red;'>Error: Test case input or expected output is missing.</span>";
+        return;
+      }
+  
+      axios.post('/run', {
+        code: code,
+        language: language,
+        input: input,
+        functionName: functionName,
+        functionSignature: functionSignature
+      })
+      .then(response => {
+        const { output, status } = response.data;
+        const actual = output.trim();
+        const passed = actual === expected;
+  
+        outputDiv.className = "output-box " + (passed ? "pass" : "fail");
+        outputDiv.innerHTML = `
+          ${passed ? "✅ <b>Test Case Passed</b>" : "❌ <b>Test Case Failed</b>"}<br><br>
+          <b>Status:</b> ${status}<br><br>
+          <b>Expected Output:</b><br>${expected}<br><br>
+          <b>Your Output:</b><br>${actual}
+        `;
+      })
+      .catch(error => {
+        console.error("Error running code:", error);
+        outputDiv.className = "output-box fail";
+        outputDiv.innerHTML = `<span style="color: red;">An error occurred while running your code.</span>`;
+      });
+    };
+  });
+  
+</script>
+</body>
+</html>

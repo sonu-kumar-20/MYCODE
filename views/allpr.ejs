@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>All Problems</title>
+  <style>
+    /* Body background color and text color */
+    body {
+      background-color: #121212; /* Dark background */
+      color: #e0e0e0; /* Bright white text */
+      font-family: Arial, sans-serif; /* Clean font */
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Centering the title */
+    h1 {
+      text-align: center;
+      padding: 20px;
+      color: #ffffff; /* White title text */
+    }
+
+    /* Table styling */
+    table {
+      border-collapse: collapse;
+      width: 90%;
+      margin: 40px auto;
+      background-color: #1f1f1f; /* Slightly lighter background for the table */
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: center;
+      color: #e0e0e0; /* Bright white text */
+      border-bottom: 1px solid #444; /* Darker border line */
+    }
+
+    /* Professional column headings */
+    th {
+      background-color: #212121; /* Dark blackish background for header */
+      color: #c1c1c1; /* Lighter gray for column headings */
+    }
+
+    /* Data row background color */
+    td {
+      background-color: #222; /* Darker background for data rows */
+    }
+
+    /* Status column styling */
+    .status {
+      text-align: center;
+    }
+
+    a {
+      text-decoration: none;
+      color: #66b3ff; /* Light blue color for links */
+      font-weight: bold;
+    }
+
+    /* Make the checkbox bigger and more visible */
+    input[type="checkbox"] {
+      transform: scale(1.5); /* Enlarges checkbox */
+      cursor: pointer; /* Shows pointer on hover */
+    }
+
+    /* Hover effect on rows */
+    tr:hover {
+      background-color: #333; /* Hover effect on table rows */
+    }
+
+    /* Light color for problem titles */
+    td a {
+      color: #f5f5f5; /* Lighter white for problem titles */
+    }
+
+    td a:hover {
+      color: #1e90ff; /* Blue color on hover */
+    }
+  </style>
+</head>
+<body>
+  <h1>All Problems</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Problem</th>
+        <th>Solution</th>
+        <th>Difficulty</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% problems.forEach(problem => { %>
+        <tr>
+          <td class="status">
+            <input type="checkbox" class="problem-checkbox" <% if (problem.solved) { %> checked <% } %> data-id="<%= problem._id %>">
+          </td>
+          <td>
+            <a href="/problems/<%= problem._id %>"><%= problem.title %></a>
+          </td>
+          <td>
+            <a href="#">Solve</a>
+          </td>
+          <td><%= problem.difficulty %></td>
+          <td>—</td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <script>
+    // Select all checkboxes
+    const checkboxes = document.querySelectorAll('.problem-checkbox');
+
+    // Add event listener for checkbox clicks
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const problemId = this.getAttribute('data-id');
+        
+        // Check if the checkbox is checked or not
+        const solvedStatus = this.checked;
+
+        // You can send this status to the server to update the problem's solved status in the database
+        console.log(`Problem ID: ${problemId}, Solved Status: ${solvedStatus}`);
+
+        // Optional: You can use AJAX to update the status in the database
+        fetch(`/updateStatus/${problemId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ solved: solvedStatus }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Status updated', data);
+        })
+        .catch(error => {
+          console.error('Error updating status', error);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
