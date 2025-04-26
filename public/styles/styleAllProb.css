@@ -1,0 +1,254 @@
+/* Reset default browser styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* Body styles */
+body {
+  background-color: #121212; /* Black background */
+  color: #ffffff; /* White text by default */
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #1e1e1e; /* Dark table background */
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+thead {
+  background-color: #333; /* Darker header */
+  color: #ffffff; /* White text */
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 1em;
+}
+
+th {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+td {
+  border-bottom: 1px solid #444; /* Lighter border for rows */
+
+}
+
+td a {
+  color: #ffffff; /* White text for links */
+  text-decoration: none;
+}
+
+td a:hover {
+  color: #FF4500; /*  color on hover for solved col */
+  text-decoration: none;
+}
+
+.vvi-icon.material-symbols-outlined {
+  font-size: 24px;
+  color: #888 !important; /* use !important to override */
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.vvi-icon.material-symbols-outlined:hover {
+  color: inherit !important;
+}
+
+.vvi-icon.material-symbols-outlined.active {
+  color: #FF4500 !important; /* orange */
+}
+
+
+
+.status input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+/* Notes and Icons */
+td a span {
+  font-size: 1.5em;
+  margin-right: 10px;
+  cursor: pointer;
+  color: #6c1515; /* White color for icons */
+}
+
+ td a span:hover {
+  opacity: 0.8;
+  color: #FF4500; /*  color for video icons on hover */
+} 
+
+/* Hover effect for table rows */
+tbody tr:hover {
+  background-color: #333; /* Darker row background on hover */
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 2em;
+  }
+
+  table {
+    width: 100%;
+    font-size: 0.9em;
+  }
+
+  th, td {
+    padding: 10px;
+  }
+
+  td .vvi-icon {
+    font-size: 1.2em;
+  }
+
+  td a span {
+    font-size: 1.3em;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.8em;
+  }
+
+  table {
+    font-size: 0.8em;
+  }
+
+  td a {
+    display: block;
+    margin: 5px 0;
+  }
+
+  td a span {
+    font-size: 1.2em;
+    margin-right: 5px;
+  }
+
+  .status input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+  }
+
+  .vvi-icon {
+    font-size: 1.3em;
+  }
+}
+
+td.difficulty {
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Badge-style span */
+td.difficulty span {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8em;
+  font-weight: bold;
+  height: 1.5rem;
+  width: 4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+/* Easy */
+td.difficulty .easy {
+  background-color: rgba(212, 237, 218, 0.2);
+  color: #28a745;
+}
+
+/* Medium */
+td.difficulty .medium {
+  background-color: rgba(255, 243, 205, 0.2);
+  color: #ffc107;
+  text-align: center;
+}
+
+/* Hard */
+td.difficulty .hard {
+  background-color: rgba(248, 215, 218, 0.2);
+  color: #dc3545;
+}
+
+
+
+
+/* // video container ka  */
+/* Video Modal Styling */
+.video-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.video-modal-content {
+  position: relative;
+  width: 80%;
+  max-width: 800px;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.video-modal-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.modal-buttons {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
+.modal-buttons button {
+  margin-left: 10px;
+  padding: 6px 12px;
+  background-color: #FF4500;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 5px;
+}

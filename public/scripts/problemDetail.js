@@ -1,61 +1,75 @@
-const templates = <%- JSON.stringify(problem.templates) %>;  // This should pass the templates from your backend
+const templates = window.templates || {};
 
 require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs' } });
 
 require(['vs/editor/editor.main'], function () {
   const languageSelector = document.getElementById('language-selector');
-  let selectedLang = languageSelector.value || 'javascript';
+  let selectedLang = languageSelector?.value || 'javascript';
 
   const editor = monaco.editor.create(document.getElementById('editor'), {
-    value: templates[selectedLang],  // Initial template based on language
+    value: templates[selectedLang] || "",
     language: selectedLang,
     theme: 'vs-dark',
     automaticLayout: true
   });
 
-  languageSelector.addEventListener('change', function () {
+  languageSelector.addEventListener('change', () => {
     selectedLang = languageSelector.value;
     monaco.editor.setModelLanguage(editor.getModel(), selectedLang);
-    editor.setValue(templates[selectedLang]);
+    editor.setValue(templates[selectedLang] || "");
   });
 
   window.runCode = function () {
     const code = editor.getValue();
     const language = languageSelector.value;
-    const input = "<%= problem.testCases && problem.testCases[0] ? problem.testCases[0].input : '' %>";  // Ensure there's at least one test case
-    const expected = "<%= problem.testCases && problem.testCases[0] ? problem.testCases[0].expectedOutput : '' %>".trim();
     const outputDiv = document.getElementById("run-output");
-
-    const functionSignature = "<%= problem.functionSignature || '' %>";
+  
+    const functionSignature = window.functionSignature || "";
     const functionNameMatch = functionSignature.match(/\b(\w+)\s*\(/);
     const functionName = functionNameMatch ? functionNameMatch[1] : "";
-
-    // Check if inputs are valid before making the request
-    if (!input || !expected) {
+  
+    const testCases = (window.testCases || []).map(tc => ({
+      input: tc.input?.trim().replace(/^"|"$/g, "") || "",  // Remove leading and trailing quotes
+      expectedOutput: tc.expectedOutput?.trim().replace(/^"|"$/g, "") || ""  // Remove leading and trailing quotes
+    }));
+  
+    // Validation: Ensure input/output are not empty
+    const invalidTest = testCases.some(tc => !tc.input || !tc.expectedOutput);
+    if (invalidTest) {
       outputDiv.className = "output-box fail";
-      outputDiv.innerHTML = "<span style='color: red;'>Error: Test case input or expected output is missing.</span>";
+      outputDiv.innerHTML = "<span style='color: red;'>Error: Each test case must have both input and expected output.</span>";
       return;
     }
-
+  
     axios.post('/run', {
-      code: code,
-      language: language,
-      input: input,
-      functionName: functionName,
-      functionSignature: functionSignature
+      code,
+      language,
+      functionSignature,
+      functionName,
+      testCases
     })
     .then(response => {
-      const { output, status } = response.data;
-      const actual = output.trim();
-      const passed = actual === expected;
-
-      outputDiv.className = "output-box " + (passed ? "pass" : "fail");
-      outputDiv.innerHTML = `
-        ${passed ? "✅ <b>Test Case Passed</b>" : "❌ <b>Test Case Failed</b>"}<br><br>
-        <b>Status:</b> ${status}<br><br>
-        <b>Expected Output:</b><br>${expected}<br><br>
-        <b>Your Output:</b><br>${actual}
-      `;
+      const { results } = response.data;
+      if (!Array.isArray(results)) {
+        outputDiv.className = "output-box fail";
+        outputDiv.innerHTML = "<span style='color: red;'>Invalid response format from server.</span>";
+        return;
+      }
+  
+      const finalHTML = results.map(({ input, expectedOutput, actualOutput, status }, index) => {
+        const passed = (expectedOutput || "").trim() === (actualOutput || "").trim();
+        return `
+          <div class="${passed ? 'output-box pass' : 'output-box fail'}">
+            <b>Test Case ${index + 1}:</b> ${passed ? "✅ Passed" : "❌ Failed"}<br><br>
+            <b>Status:</b> ${status}<br>
+            <b>Input:</b><br>${input}<br><br>
+            <b>Expected Output:</b><br>${expectedOutput}<br><br>
+            <b>Your Output:</b><br>${actualOutput || "undefined"}
+          </div>
+        `;
+      }).join("");
+  
+      outputDiv.innerHTML = finalHTML;
     })
     .catch(error => {
       console.error("Error running code:", error);
@@ -63,4 +77,103 @@ require(['vs/editor/editor.main'], function () {
       outputDiv.innerHTML = `<span style="color: red;">An error occurred while running your code.</span>`;
     });
   };
+  
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// const templates = window.templates;
+
+// require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs' } });
+
+// require(['vs/editor/editor.main'], function () {
+//   const languageSelector = document.getElementById('language-selector');
+//   let selectedLang = languageSelector.value || 'javascript';
+
+//   const editor = monaco.editor.create(document.getElementById('editor'), {
+//     value: templates[selectedLang],
+//     language: selectedLang,
+//     theme: 'vs-dark',
+//     automaticLayout: true
+//   });
+
+//   languageSelector.addEventListener('change', function () {
+//     selectedLang = languageSelector.value;
+//     monaco.editor.setModelLanguage(editor.getModel(), selectedLang);
+//     editor.setValue(templates[selectedLang]);
+//   });
+
+//   window.runCode = function () {
+//     const code = editor.getValue();
+//     const language = languageSelector.value;
+//     const testCases = window.testCases || [{
+//       input: window.testInput,
+//       expectedOutput: window.expectedOutput
+//     }];
+    
+//     const outputDiv = document.getElementById("run-output");
+
+//     const functionSignature = window.functionSignature || "";
+//     const functionNameMatch = functionSignature.match(/\b(\w+)\s*\(/);
+//     const functionName = functionNameMatch ? functionNameMatch[1] : "";
+//     const invalidTest = testCases.some(tc => !tc.input || !tc.expectedOutput);
+// if (invalidTest) {
+//   outputDiv.className = "output-box fail";
+//   outputDiv.innerHTML = "<span style='color: red;'>Error: Each test case must have both input and expected output.</span>";
+//   return;
+// }
+
+    
+
+//     axios.post('/run', {
+//       code,
+//       language,
+//       functionSignature,
+//       testCases
+//     })
+    
+//     .then(response => {
+//       const { results } = response.data;
+//       const outputDiv = document.getElementById("run-output");
+//       let finalHTML = "";
+    
+//       results.forEach(({ input, expectedOutput, actualOutput, status }, index) => {
+//         const passed = (expectedOutput || "").trim() === (actualOutput || "").trim();
+//         finalHTML += `
+//           <div class="${passed ? 'output-box pass' : 'output-box fail'}">
+//             <b>Test Case ${index + 1}</b>: ${passed ? "✅ Passed" : "❌ Failed"}<br>
+//             <b>Status:</b> ${status}<br>
+//             <b>Input:</b> ${input}<br>
+//             <b>Expected:</b> ${expectedOutput}<br>
+//             <b>Your Output:</b> ${actualOutput}<br><br>
+//           </div>
+//         `;
+//       });
+      
+    
+//       outputDiv.innerHTML = finalHTML;
+//     })
+    
+//     .catch(error => {
+//       console.error("Error running code:", error);
+//       outputDiv.className = "output-box fail";
+//       outputDiv.innerHTML = `<span style="color: red;">An error occurred while running your code.</span>`;
+
+//     });
+//   };
+// });
+

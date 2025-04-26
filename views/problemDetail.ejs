@@ -6,23 +6,25 @@
   <title>Code Editor</title>
   
   <!-- Link to your CSS file -->
-  <link rel="stylesheet" href="/styles/styles.css">
+  <link rel="stylesheet" href="/styles/stylesProbDetail.css">
   
   <!-- Axios -->
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   
   <!-- Monaco Editor -->
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs/loader.js"></script>
-
 </head>
 <body>
+  
   <div class="container">
+    
     <!-- Left Panel -->
     <div class="details" id="left-panel">
-      <h1><%= problem.title %></h1>
+      <span class="expand-icon" onclick="expandPanel('left')" title="Expand Description">🡆</span>
+
+      <h4><%= problem.title %></h4>
 
       <div class="problem-title">
-        <h2>Problem Description</h2>
         <p><%= problem.description %></p>
       </div>
 
@@ -71,6 +73,7 @@
           <div class="btn-container">
             <button type="button" class="run-btn" onclick="runCode()">Run Code</button>
             <button type="submit" class="submit-btn">Submit Code</button>
+            <span class="expand-icon" onclick="expandPanel('right')" title="Expand Editor">🡄</span>
           </div>
         </form>
       </div>
@@ -79,75 +82,93 @@
       <div id="run-output" class="output-box"></div>
     </div>
   </div>
- <script>
-  <!-- Include the problemDetail.js script -->
-  const templates = <%- JSON.stringify(problem.templates) %>;  // This should pass the templates from your backend
 
-  require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs' } });
-  
-  require(['vs/editor/editor.main'], function () {
-    const languageSelector = document.getElementById('language-selector');
-    let selectedLang = languageSelector.value || 'javascript';
-  
-    const editor = monaco.editor.create(document.getElementById('editor'), {
-      value: templates[selectedLang],  // Initial template based on language
-      language: selectedLang,
-      theme: 'vs-dark',
-      automaticLayout: true
-    });
-  
-    languageSelector.addEventListener('change', function () {
-      selectedLang = languageSelector.value;
-      monaco.editor.setModelLanguage(editor.getModel(), selectedLang);
-      editor.setValue(templates[selectedLang]);
-    });
-  
-    window.runCode = function () {
-      const code = editor.getValue();
-      const language = languageSelector.value;
-      const input = "<%= problem.testCases && problem.testCases[0] ? problem.testCases[0].input : '' %>";  // Ensure there's at least one test case
-      const expected = "<%= problem.testCases && problem.testCases[0] ? problem.testCases[0].expectedOutput : '' %>".trim();
-      const outputDiv = document.getElementById("run-output");
-  
-      const functionSignature = "<%= problem.functionSignature || '' %>";
-      const functionNameMatch = functionSignature.match(/\b(\w+)\s*\(/);
-      const functionName = functionNameMatch ? functionNameMatch[1] : "";
-  
-      // Check if inputs are valid before making the request
-      if (!input || !expected) {
-        outputDiv.className = "output-box fail";
-        outputDiv.innerHTML = "<span style='color: red;'>Error: Test case input or expected output is missing.</span>";
-        return;
+  <!-- Pass necessary data from EJS to the frontend -->
+  <script>
+    window.templates = <%- JSON.stringify(problem.templates) %>;
+    window.testCases = <%- JSON.stringify(problem.testCases || []) %>;
+    window.functionSignature = "<%= problem.functionSignature || '' %>";
+  </script>
+
+  <!-- Expand/Collapse Panel Script -->
+  <script>
+    function expandPanel(side) {
+      const container = document.querySelector(".container");
+      const leftPanel = document.getElementById("left-panel");
+      const rightPanel = document.getElementById("right-panel");
+      const leftIcon = document.querySelector("#left-panel .expand-icon");
+      const rightIcon = document.querySelector("#right-panel .expand-icon");
+
+      // Reset manual resizing
+      leftPanel.style.flex = '';
+      rightPanel.style.flex = '';
+
+      if (side === 'left') {
+        const isFull = container.classList.contains("full-left");
+        container.classList.remove("full-right");
+        container.classList.toggle("full-left", !isFull);
+
+        if (leftIcon) leftIcon.textContent = isFull ? "🡆" : "🡄";
+        if (rightIcon) rightIcon.textContent = "🡄";
+      } else if (side === 'right') {
+        const isFull = container.classList.contains("full-right");
+        container.classList.remove("full-left");
+        container.classList.toggle("full-right", !isFull);
+
+        if (rightIcon) rightIcon.textContent = isFull ? "🡄" : "🡆";
+        if (leftIcon) leftIcon.textContent = "🡆";
       }
-  
-      axios.post('/run', {
-        code: code,
-        language: language,
-        input: input,
-        functionName: functionName,
-        functionSignature: functionSignature
-      })
-      .then(response => {
-        const { output, status } = response.data;
-        const actual = output.trim();
-        const passed = actual === expected;
-  
-        outputDiv.className = "output-box " + (passed ? "pass" : "fail");
-        outputDiv.innerHTML = `
-          ${passed ? "✅ <b>Test Case Passed</b>" : "❌ <b>Test Case Failed</b>"}<br><br>
-          <b>Status:</b> ${status}<br><br>
-          <b>Expected Output:</b><br>${expected}<br><br>
-          <b>Your Output:</b><br>${actual}
-        `;
-      })
-      .catch(error => {
-        console.error("Error running code:", error);
-        outputDiv.className = "output-box fail";
-        outputDiv.innerHTML = `<span style="color: red;">An error occurred while running your code.</span>`;
-      });
-    };
-  });
-  
-</script>
+
+      // Resize Monaco Editor
+      if (window.editor) {
+        setTimeout(() => {
+          window.editor.layout();
+        }, 200);
+      }
+    }
+  </script>
+
+  <!-- Resizer Script -->
+  <script>
+    const resizer = document.getElementById("resizer");
+    const leftPanel = document.getElementById("left-panel");
+    const container = document.querySelector(".container");
+
+    let isResizing = false;
+
+    resizer.addEventListener("mousedown", (e) => {
+      if (container.classList.contains("full-left") || container.classList.contains("full-right")) return;
+
+      isResizing = true;
+      document.body.style.cursor = "ew-resize";
+      document.addEventListener("mousemove", resize);
+      document.addEventListener("mouseup", stopResize);
+    });
+
+    function resize(e) {
+      if (!isResizing) return;
+
+      const containerRect = container.getBoundingClientRect();
+      let newWidth = e.clientX - containerRect.left;
+
+      const minWidth = 200;
+      const maxWidth = containerRect.width * 0.7;
+      newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+
+      leftPanel.style.flex = `0 0 ${newWidth}px`;
+
+      if (window.editor) window.editor.layout();
+    }
+
+    function stopResize() {
+      isResizing = false;
+      document.body.style.cursor = "";
+      document.removeEventListener("mousemove", resize);
+      document.removeEventListener("mouseup", stopResize);
+    }
+  </script>
+
+  <!-- Your custom logic script -->
+  <script src="/scripts/problemDetail.js"></script>
 </body>
 </html>

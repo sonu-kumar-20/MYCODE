@@ -3,130 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <title>All Problems</title>
-  <style>
-    /* Body background color and text color */
-    body {
-      background-color: #121212; /* Dark background */
-      color: #e0e0e0; /* Bright white text */
-      font-family: Arial, sans-serif; /* Clean font */
-      margin: 0;
-      padding: 0;
-    }
-
-    /* Centering the title */
-    h1 {
-      text-align: center;
-      padding: 20px;
-      color: #ffffff; /* White title text */
-    }
-
-    /* Table styling */
-    table {
-      border-collapse: collapse;
-      width: 90%;
-      margin: 40px auto;
-      background-color: #1f1f1f; /* Slightly lighter background for the table */
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    th, td {
-      padding: 15px;
-      text-align: center;
-      color: #e0e0e0; /* Bright white text */
-      border-bottom: 1px solid #444; /* Darker border line */
-    }
-
-    /* Professional column headings */
-    th {
-      background-color: #212121; /* Dark blackish background for header */
-      color: #c1c1c1; /* Lighter gray for column headings */
-    }
-
-    /* Data row background color */
-    td {
-      background-color: #222; /* Darker background for data rows */
-    }
-
-    /* Status column styling */
-    .status {
-      text-align: center;
-    }
-
-    a {
-      text-decoration: none;
-      color: #66b3ff; /* Light blue color for links */
-      font-weight: bold;
-    }
-
-    /* Make the checkbox bigger and more visible */
-    input[type="checkbox"] {
-      transform: scale(1.5); /* Enlarges checkbox */
-      cursor: pointer; /* Shows pointer on hover */
-    }
-
-    /* Hover effect on rows */
-    tr:hover {
-      background-color: #333; /* Hover effect on table rows */
-    }
-
-    /* Light color for problem titles */
-    td a {
-      color: #f5f5f5; /* Lighter white for problem titles */
-    }
-
-    td a:hover {
-      color: #1e90ff; /* Blue color on hover */
-    }
-  </style>
+  <!-- Google Fonts for Material Symbols -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" />
+  <link rel="stylesheet" href="/styles/styleAllprob.css">
 </head>
 <body>
-  <h1>All Problems</h1>
+  <h2 style="color: #FF4500;">A Complete Coding Platform for Aspiring Programmers, Created by NIT Alumni</h2>
   <table>
     <thead>
       <tr>
-        <th>Status</th>
         <th>Problem</th>
         <th>Solution</th>
-        <th>Difficulty</th>
+        <th>Solved</th>
         <th>Notes</th>
+        <th>VVI</th>
+        <th>Level</th>
+        <th>Status</th>
       </tr>
     </thead>
     <tbody>
       <% problems.forEach(problem => { %>
         <tr>
-          <td class="status">
-            <input type="checkbox" class="problem-checkbox" <% if (problem.solved) { %> checked <% } %> data-id="<%= problem._id %>">
-          </td>
           <td>
             <a href="/problems/<%= problem._id %>"><%= problem.title %></a>
           </td>
+
+          <!-- Solution: Video link -->
           <td>
-            <a href="#">Solve</a>
+            <a href="#" class="videoLink" data-video="<%= problem.videoUrl %>">
+              <span class="material-symbols-outlined">play_circle</span>
+            </a>
+            <div class="videoContainer"></div>
           </td>
-          <td><%= problem.difficulty %></td>
-          <td>—</td>
+          
+          
+
+          <!-- Solved: Link to solve page -->
+          <td>
+            <a href="/problems/<%= problem._id %>">Solve</a>
+          </td>
+
+          <!-- Notes: icons only for now -->
+          <td>
+            <a href="#"><span title="My Notes">📝</span></a>
+            <a href="#"><span title="Code Solution">💻</span></a>
+          </td>
+
+          <!-- VVI: clickable star icon -->
+          <td>
+            <span 
+              class="vvi-icon material-symbols-outlined" 
+              data-id="<%= problem._id %>" 
+              id="vvi-<%= problem._id %>"
+            >
+              hotel_class
+            </span>
+          </td>
+          
+
+          <!-- Level from DB -->
+          <td class="difficulty">
+            <span class="<%= problem.difficulty.toLowerCase() %>">
+              <%= problem.difficulty %>
+            </span>
+          </td>
+          
+          
+
+          <!-- Status checkbox -->
+          <td class="status">
+            <input type="checkbox" class="problem-checkbox" <% if (problem.solved) { %> checked <% } %> data-id="<%= problem._id %>">
+          </td>
         </tr>
       <% }) %>
     </tbody>
   </table>
 
   <script>
-    // Select all checkboxes
+      // Star icon logic for VVI
+      document.addEventListener("DOMContentLoaded", () => {
+    const stars = document.querySelectorAll('.vvi-icon');
+
+    stars.forEach(star => {
+      star.addEventListener('click', function () {
+        this.classList.toggle('active');
+        const problemId = this.getAttribute('data-id');
+        const isImportant = this.classList.contains('active');
+
+        console.log(`Problem ID: ${problemId}, Marked Important: ${isImportant}`); // This should show up
+
+        fetch(`/updateVVI/${problemId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ important: isImportant }),
+        })
+        .then(response => response.json())
+        .then(data => console.log('VVI status updated', data))
+        .catch(error => console.error('Error updating VVI status', error));
+      });
+    });
+  });
+
+    // Select all checkboxes for Solved Status
     const checkboxes = document.querySelectorAll('.problem-checkbox');
 
-    // Add event listener for checkbox clicks
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', function() {
         const problemId = this.getAttribute('data-id');
-        
-        // Check if the checkbox is checked or not
         const solvedStatus = this.checked;
 
-        // You can send this status to the server to update the problem's solved status in the database
         console.log(`Problem ID: ${problemId}, Solved Status: ${solvedStatus}`);
 
-        // Optional: You can use AJAX to update the status in the database
+        // Save this status to the database
         fetch(`/updateStatus/${problemId}`, {
           method: 'POST',
           headers: {
@@ -144,5 +134,61 @@
       });
     });
   </script>
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const videoModal = document.getElementById("videoModal");
+    const modalIframe = document.getElementById("modalIframe");
+    const closeBtn = document.getElementById("modalClose");
+    const fullscreenBtn = document.getElementById("modalFullscreen");
+
+    document.querySelectorAll(".videoLink").forEach(link => {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        const videoUrl = this.getAttribute("data-video");
+        const embedUrl = convertToEmbedUrl(videoUrl);
+        modalIframe.src = embedUrl;
+        videoModal.style.display = "flex";
+      });
+    });
+
+    closeBtn.addEventListener("click", () => {
+      videoModal.style.display = "none";
+      modalIframe.src = ""; // Stop the video
+    });
+
+    fullscreenBtn.addEventListener("click", () => {
+      if (modalIframe.requestFullscreen) {
+        modalIframe.requestFullscreen();
+      } else if (modalIframe.mozRequestFullScreen) {
+        modalIframe.mozRequestFullScreen();
+      } else if (modalIframe.webkitRequestFullscreen) {
+        modalIframe.webkitRequestFullscreen();
+      } else if (modalIframe.msRequestFullscreen) {
+        modalIframe.msRequestFullscreen();
+      }
+    });
+
+    function convertToEmbedUrl(url) {
+      if (url.includes("watch?v=")) {
+        return "https://www.youtube.com/embed/" + url.split("v=")[1].split("&")[0];
+      } else if (url.includes("youtu.be/")) {
+        return "https://www.youtube.com/embed/" + url.split("youtu.be/")[1].split("?")[0];
+      } else {
+        return url; // already embed
+      }
+    }
+  });
+</script>
+
+
+<div id="videoModal" class="video-modal">
+  <div class="video-modal-content">
+    <iframe id="modalIframe" frameborder="0" allowfullscreen></iframe>
+    <div class="modal-buttons">
+      <button id="modalClose">Close</button>
+      <button id="modalFullscreen">Fullscreen</button>
+    </div>
+  </div>
+</div> 
 </body>
 </html>

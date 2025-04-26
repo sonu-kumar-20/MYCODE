@@ -22,8 +22,11 @@ const problemSchema = new mongoose.Schema({
   category: { type: String, required: true },
   language: {
     type: String,
-    enum: ["javascript", "python", "cpp", "java"],
+    enum: ["cpp", "java"],
     required: true,
+  },
+  videoUrl:{
+   type:String,
   },
   functionSignature: { type: String, required: true },
   constraints: [{ type: String }],
@@ -32,13 +35,13 @@ const problemSchema = new mongoose.Schema({
   templates: {
     cpp: { type: String },
     java: { type: String },
-    javascript: { type: String },
-    python: { type: String },
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
+  important: { type: Boolean, default: false }, // Field to mark VVI (Very Very Important)
+  solved: { type: Boolean, default: false },   // Field to track if the problem is solved
 });
 
 module.exports = mongoose.model("Problem", problemSchema);
